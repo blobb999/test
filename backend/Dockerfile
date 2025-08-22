@@ -36,6 +36,3 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Run the application
 CMD ["python", "src/main.py"]
 
-RUN apt-get update && apt-get install -y curl
-RUN curl -fsSL https://ollama.com/install.sh | sh
-
