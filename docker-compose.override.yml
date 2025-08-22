@@ -1,0 +1,42 @@
+# Docker Compose Override for Development
+version: '3.8'
+
+services:
+  backend:
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+    volumes:
+      - ./backend/ki_self_sustain_backend:/app:ro
+    ports:
+      - "5001:5000"  # Different port for development
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend/ki_self_sustain_frontend/src:/app/src:ro
+    ports:
+      - "3002:80"  # Different port for development
+    environment:
+      - NODE_ENV=development
+
+  # Development-specific services
+  adminer:
+    image: adminer
+    container_name: ki_self_sustain_adminer
+    ports:
+      - "8080:8080"
+    networks:
+      - ki_network
+    restart: unless-stopped
+
+  # Development LLM service with different model
+  llm_service:
+    environment:
+      - OLLAMA_DEBUG=1
+    volumes:
+      - ./llm_models:/root/.ollama
+      - ./dev_scripts:/scripts
+

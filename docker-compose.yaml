@@ -1,0 +1,183 @@
+version: '3.8'
+
+services:
+  # Backend service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ki_self_sustain_backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./backups:/app/backups
+    environment:
+      - FLASK_ENV=production
+      - FLOWISE_API_URL=http://flowise:3000
+      - LLM_API_URL=http://llm_service:8000
+      - PYTHONPATH=/app
+    depends_on:
+      - flowise
+      - llm_service
+    networks:
+      - ki_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/ai/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ki_self_sustain_frontend
+    ports:
+      - "8089:80"
+    depends_on:
+      - backend
+    networks:
+      - ki_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Flowise service
+  flowise:
+    image: flowiseai/flowise:latest
+    container_name: ki_self_sustain_flowise
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./flowise_data:/root/.flowise
+    environment:
+      - PORT=3000
+      - CORS_ORIGINS=*
+      - IFRAME_ORIGINS=*
+      - FLOWISE_USERNAME=admin
+      - FLOWISE_PASSWORD=ki_self_sustain_2024
+      - DATABASE_PATH=/root/.flowise
+      - APIKEY_PATH=/root/.flowise
+      - SECRETKEY_PATH=/root/.flowise
+      - LOG_LEVEL=info
+      - LOG_PATH=/root/.flowise/logs
+    networks:
+      - ki_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # LLM service (Ollama)
+  llm_service:
+    image: ollama/ollama:latest
+    container_name: ki_self_sustain_llm
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./llm_models:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_ORIGINS=*
+    networks:
+      - ki_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: ki_self_sustain_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis_data:/data
+    networks:
+      - ki_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Monitoring service (Prometheus - optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ki_self_sustain_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - ki_network
+    restart: unless-stopped
+
+  # Grafana for visualization (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ki_self_sustain_grafana
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./monitoring/grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=ki_self_sustain_2024
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - ki_network
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+volumes:
+  data:
+    driver: local
+  logs:
+    driver: local
+  backups:
+    driver: local
+  flowise_data:
+    driver: local
+  llm_models:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  ki_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
