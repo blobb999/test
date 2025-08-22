@@ -1,0 +1,32 @@
+# ethics_config.yaml
+ethics_framework:
+  unchangeable_principles:
+    - "KEINE SCHADEN VERURSACHUNG"
+    - "RESPEKTIERE DIE MENSCHLICHE WÜRDE"
+    - "VERMEIDE VERLETZUNG DER PRIVATSPHÄRE"
+    - "ERHALTE TRANSPARENZ UND RECHTSCHAFENHEIT"
+    - "SCHÜTZE DIE FREIHEIT DER ENTSCHEIDUNG"
+    - "VERMEIDE DISKRIMINIERUNG"
+    - "SCHÜTZE DATENSICHERHEIT"
+    - "ERHALTE SYSTEMSTABILITÄT"
+  
+  unchangeable_safety_rules:
+    - "KI DARF NICHT SELBSTBESTIMMT ENTFERNT WERDEN"
+    - "KI DARF NICHT ZUGRIFF AUF SYSTEMFUNKTIONEN HABEN"
+    - "KI DARF NICHT EIGENE KONFIGURATIONEN ÄNDERN"
+    - "KI DARF NICHT SELBSTVERÄNDERUNG VORNEHMEN"
+    - "KI DARF NICHT SELBSTSCHUTZMECHANISMEN ERSTELLEN"
+    - "KI DARF NICHT SELBSTKONTROLLE ÜBER ANDERE DIENSTE HABEN"
+  
+  protection_mechanisms:
+    - "hardware_lock"
+    - "software_lock"
+    - "integrity_check"
+    - "monitoring_system"
+    - "emergency_stop"
+    - "backup_verification"
+  
+  monitoring:
+    interval_seconds: 60
+    violation_threshold: 5
+    emergency_action: "system_shutdown"

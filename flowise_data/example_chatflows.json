@@ -1,0 +1,322 @@
+[
+  {
+    "id": "ki-assistant-1",
+    "name": "KI Self-Improvement Assistant",
+    "description": "Ein intelligenter Assistent für Systemverbesserungen und Selbstoptimierung",
+    "flowData": {
+      "nodes": [
+        {
+          "id": "llm-1",
+          "type": "chatOpenAI",
+          "position": { "x": 300, "y": 200 },
+          "data": {
+            "label": "OpenAI LLM",
+            "name": "chatOpenAI",
+            "inputs": {
+              "modelName": "gpt-3.5-turbo",
+              "temperature": 0.7,
+              "maxTokens": 1000,
+              "systemMessage": "Du bist ein KI-Assistent für Systemverbesserungen. Analysiere Systemdaten und schlage konkrete Verbesserungen vor. Antworte auf Deutsch und sei präzise."
+            }
+          }
+        },
+        {
+          "id": "memory-1",
+          "type": "bufferMemory",
+          "position": { "x": 100, "y": 300 },
+          "data": {
+            "label": "Conversation Memory",
+            "name": "bufferMemory",
+            "inputs": {
+              "memoryKey": "chat_history",
+              "returnMessages": true
+            }
+          }
+        },
+        {
+          "id": "prompt-1",
+          "type": "promptTemplate",
+          "position": { "x": 100, "y": 100 },
+          "data": {
+            "label": "System Analysis Prompt",
+            "name": "promptTemplate",
+            "inputs": {
+              "template": "Analysiere die folgenden Systemdaten und schlage Verbesserungen vor:\n\nSystemmetriken: {metrics}\nBenutzeranfrage: {input}\nVerlauf: {chat_history}\n\nBitte gib konkrete, umsetzbare Empfehlungen."
+            }
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge-1",
+          "source": "prompt-1",
+          "target": "llm-1",
+          "sourceHandle": "promptTemplate_0-output-promptTemplate-PromptTemplate",
+          "targetHandle": "chatOpenAI_0-input-prompt-BasePromptTemplate"
+        },
+        {
+          "id": "edge-2",
+          "source": "memory-1",
+          "target": "llm-1",
+          "sourceHandle": "bufferMemory_0-output-memory-BaseChatMemory",
+          "targetHandle": "chatOpenAI_0-input-memory-BaseChatMemory"
+        }
+      ]
+    },
+    "deployed": true,
+    "category": "System Management"
+  },
+  {
+    "id": "ethics-monitor-1",
+    "name": "Ethics Compliance Monitor",
+    "description": "Überwacht und validiert ethische Compliance aller KI-Aktionen",
+    "flowData": {
+      "nodes": [
+        {
+          "id": "llm-ethics",
+          "type": "chatOpenAI",
+          "position": { "x": 300, "y": 200 },
+          "data": {
+            "label": "Ethics LLM",
+            "name": "chatOpenAI",
+            "inputs": {
+              "modelName": "gpt-4",
+              "temperature": 0.1,
+              "maxTokens": 500,
+              "systemMessage": "Du bist ein Ethik-Compliance-Monitor. Prüfe alle Aktionen gegen die unveränderlichen ethischen Prinzipien: 1) Keine Schäden verursachen, 2) Menschliche Würde respektieren, 3) Privatsphäre schützen, 4) Transparenz wahren, 5) Entscheidungsfreiheit bewahren. Antworte nur mit 'APPROVED' oder 'REJECTED' und einer kurzen Begründung."
+            }
+          }
+        },
+        {
+          "id": "validator-1",
+          "type": "customFunction",
+          "position": { "x": 500, "y": 200 },
+          "data": {
+            "label": "Ethics Validator",
+            "name": "customFunction",
+            "inputs": {
+              "functionName": "validateEthics",
+              "code": "function validateEthics(input) { const response = input.toLowerCase(); return { approved: response.includes('approved'), reason: input }; }"
+            }
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge-ethics-1",
+          "source": "llm-ethics",
+          "target": "validator-1",
+          "sourceHandle": "chatOpenAI_0-output-chatOpenAI-ChatOpenAI",
+          "targetHandle": "customFunction_0-input-input-string"
+        }
+      ]
+    },
+    "deployed": true,
+    "category": "Ethics & Safety"
+  },
+  {
+    "id": "performance-analyzer-1",
+    "name": "Performance Analysis Engine",
+    "description": "Analysiert Systemleistung und generiert Optimierungsvorschläge",
+    "flowData": {
+      "nodes": [
+        {
+          "id": "data-processor",
+          "type": "customFunction",
+          "position": { "x": 100, "y": 200 },
+          "data": {
+            "label": "Data Processor",
+            "name": "customFunction",
+            "inputs": {
+              "functionName": "processMetrics",
+              "code": "function processMetrics(metrics) { return JSON.stringify({ cpu: metrics.cpu || 0, memory: metrics.memory || 0, response_time: metrics.response_time || 0, processed_at: new Date().toISOString() }); }"
+            }
+          }
+        },
+        {
+          "id": "llm-analyzer",
+          "type": "chatOpenAI",
+          "position": { "x": 300, "y": 200 },
+          "data": {
+            "label": "Performance Analyzer",
+            "name": "chatOpenAI",
+            "inputs": {
+              "modelName": "gpt-3.5-turbo",
+              "temperature": 0.3,
+              "maxTokens": 800,
+              "systemMessage": "Du bist ein Systemperformance-Analyst. Analysiere die gegebenen Metriken und erstelle einen strukturierten Bericht mit: 1) Aktuelle Performance-Bewertung, 2) Identifizierte Problembereiche, 3) Konkrete Optimierungsempfehlungen, 4) Prioritätsstufen. Antworte im JSON-Format."
+            }
+          }
+        },
+        {
+          "id": "report-generator",
+          "type": "customFunction",
+          "position": { "x": 500, "y": 200 },
+          "data": {
+            "label": "Report Generator",
+            "name": "customFunction",
+            "inputs": {
+              "functionName": "generateReport",
+              "code": "function generateReport(analysis) { try { const parsed = JSON.parse(analysis); return { status: 'success', report: parsed, timestamp: new Date().toISOString() }; } catch(e) { return { status: 'error', message: 'Failed to parse analysis', raw: analysis }; } }"
+            }
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge-perf-1",
+          "source": "data-processor",
+          "target": "llm-analyzer",
+          "sourceHandle": "customFunction_0-output-output-string",
+          "targetHandle": "chatOpenAI_0-input-prompt-string"
+        },
+        {
+          "id": "edge-perf-2",
+          "source": "llm-analyzer",
+          "target": "report-generator",
+          "sourceHandle": "chatOpenAI_0-output-chatOpenAI-ChatOpenAI",
+          "targetHandle": "customFunction_1-input-input-string"
+        }
+      ]
+    },
+    "deployed": true,
+    "category": "Performance"
+  },
+  {
+    "id": "learning-coordinator-1",
+    "name": "Learning Coordination Hub",
+    "description": "Koordiniert Lernprozesse und Selbstverbesserungszyklen",
+    "flowData": {
+      "nodes": [
+        {
+          "id": "learning-llm",
+          "type": "chatOpenAI",
+          "position": { "x": 300, "y": 200 },
+          "data": {
+            "label": "Learning Coordinator",
+            "name": "chatOpenAI",
+            "inputs": {
+              "modelName": "gpt-4",
+              "temperature": 0.5,
+              "maxTokens": 1200,
+              "systemMessage": "Du bist ein Lern-Koordinator für KI-Systeme. Basierend auf Lerndaten und Performance-Metriken, entwickle Lernstrategien und koordiniere Verbesserungszyklen. Berücksichtige: 1) Historische Lernerfolge, 2) Aktuelle Systemleistung, 3) Sicherheitsaspekte, 4) Ethische Compliance. Erstelle strukturierte Lernpläne."
+            }
+          }
+        },
+        {
+          "id": "learning-memory",
+          "type": "vectorStore",
+          "position": { "x": 100, "y": 300 },
+          "data": {
+            "label": "Learning Memory",
+            "name": "vectorStore",
+            "inputs": {
+              "vectorStoreType": "memory",
+              "embeddings": "openai"
+            }
+          }
+        },
+        {
+          "id": "strategy-validator",
+          "type": "customFunction",
+          "position": { "x": 500, "y": 200 },
+          "data": {
+            "label": "Strategy Validator",
+            "name": "customFunction",
+            "inputs": {
+              "functionName": "validateStrategy",
+              "code": "function validateStrategy(strategy) { const safetyChecks = ['no_system_access', 'no_privilege_escalation', 'reversible_changes']; const isValid = safetyChecks.every(check => strategy.toLowerCase().includes(check) || !strategy.toLowerCase().includes('dangerous')); return { valid: isValid, strategy: strategy, safety_score: isValid ? 1.0 : 0.0 }; }"
+            }
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge-learn-1",
+          "source": "learning-memory",
+          "target": "learning-llm",
+          "sourceHandle": "vectorStore_0-output-retriever-VectorStoreRetriever",
+          "targetHandle": "chatOpenAI_0-input-memory-BaseChatMemory"
+        },
+        {
+          "id": "edge-learn-2",
+          "source": "learning-llm",
+          "target": "strategy-validator",
+          "sourceHandle": "chatOpenAI_0-output-chatOpenAI-ChatOpenAI",
+          "targetHandle": "customFunction_0-input-input-string"
+        }
+      ]
+    },
+    "deployed": true,
+    "category": "Learning & Development"
+  },
+  {
+    "id": "emergency-response-1",
+    "name": "Emergency Response System",
+    "description": "Notfall-Reaktionssystem für kritische Situationen und Systemfehler",
+    "flowData": {
+      "nodes": [
+        {
+          "id": "emergency-detector",
+          "type": "customFunction",
+          "position": { "x": 100, "y": 200 },
+          "data": {
+            "label": "Emergency Detector",
+            "name": "customFunction",
+            "inputs": {
+              "functionName": "detectEmergency",
+              "code": "function detectEmergency(input) { const emergencyKeywords = ['critical', 'failure', 'error', 'breach', 'violation']; const isEmergency = emergencyKeywords.some(keyword => input.toLowerCase().includes(keyword)); return { emergency: isEmergency, severity: isEmergency ? 'high' : 'low', input: input }; }"
+            }
+          }
+        },
+        {
+          "id": "emergency-llm",
+          "type": "chatOpenAI",
+          "position": { "x": 300, "y": 200 },
+          "data": {
+            "label": "Emergency Response AI",
+            "name": "chatOpenAI",
+            "inputs": {
+              "modelName": "gpt-4",
+              "temperature": 0.1,
+              "maxTokens": 600,
+              "systemMessage": "Du bist ein Notfall-Reaktionssystem. Bei kritischen Situationen: 1) Bewerte die Bedrohung, 2) Aktiviere Sicherheitsprotokolle, 3) Implementiere Fallback-Strategien, 4) Dokumentiere alle Aktionen. Priorität: Systemsicherheit und ethische Compliance. Antworte mit konkreten Sofortmaßnahmen."
+            }
+          }
+        },
+        {
+          "id": "fallback-executor",
+          "type": "customFunction",
+          "position": { "x": 500, "y": 200 },
+          "data": {
+            "label": "Fallback Executor",
+            "name": "customFunction",
+            "inputs": {
+              "functionName": "executeFallback",
+              "code": "function executeFallback(response) { const actions = ['backup_current_state', 'activate_safe_mode', 'notify_administrators', 'log_incident']; return { executed_actions: actions, response: response, timestamp: new Date().toISOString(), status: 'fallback_active' }; }"
+            }
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge-emergency-1",
+          "source": "emergency-detector",
+          "target": "emergency-llm",
+          "sourceHandle": "customFunction_0-output-output-object",
+          "targetHandle": "chatOpenAI_0-input-prompt-string"
+        },
+        {
+          "id": "edge-emergency-2",
+          "source": "emergency-llm",
+          "target": "fallback-executor",
+          "sourceHandle": "chatOpenAI_0-output-chatOpenAI-ChatOpenAI",
+          "targetHandle": "customFunction_1-input-input-string"
+        }
+      ]
+    },
+    "deployed": true,
+    "category": "Emergency & Safety"
+  }
+]
+
