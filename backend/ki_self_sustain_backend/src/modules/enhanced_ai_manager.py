@@ -8,7 +8,6 @@ from .llm_api_client import LLMAPIClient
 from .secure_self_improvement import SecureSelfImprovement
 from .fallback_strategies import FallbackManager
 from .immutable_ai_control import ImmutableAIController
-from .ollama_installer import OllamaInstaller
 
 class EnhancedAIManager:
     """Enhanced AI Manager with self-learning capabilities"""
@@ -20,7 +19,6 @@ class EnhancedAIManager:
         self.secure_improvement = SecureSelfImprovement()
         self.fallback_manager = FallbackManager()
         self.ai_controller = ImmutableAIController()
-        self.ollama_installer = OllamaInstaller()
         self.learning_data = []
         self.performance_metrics = {}
         self.setup_logging()
@@ -434,109 +432,4 @@ class EnhancedAIManager:
             if "lessons" in entry:
                 patterns.extend(entry["lessons"])
         return list(set(patterns))  # Entferne Duplikate
-
-
-    
-    def auto_setup_ai_if_needed(self):
-        """Automatically setup AI (Ollama) if not available"""
-        try:
-            self.logger.info("Checking AI availability and auto-setting up if needed...")
-            
-            # Check if Ollama is available
-            if not self.ollama_installer.check_ollama_installed():
-                self.logger.info("Ollama not found, starting automatic setup...")
-                
-                # Check system requirements first
-                requirements = self.ollama_installer.check_system_requirements()
-                if not requirements.get("meets_requirements", False):
-                    return {
-                        "status": "error",
-                        "message": "System does not meet requirements for Ollama",
-                        "requirements": requirements
-                    }
-                
-                # Perform complete setup
-                setup_result = self.ollama_installer.setup_ollama_complete()
-                
-                if setup_result["status"] == "success":
-                    self.logger.info("Ollama setup completed successfully")
-                    
-                    # Update LLM client configuration
-                    self.llm_client.set_base_url("http://localhost:11434")
-                    
-                    # Test the connection
-                    test_result = self.llm_client.test_connection()
-                    if test_result["status"] == "success":
-                        return {
-                            "status": "success",
-                            "message": "AI system automatically set up and ready",
-                            "setup_details": setup_result,
-                            "connection_test": test_result
-                        }
-                    else:
-                        return {
-                            "status": "warning",
-                            "message": "AI installed but connection test failed",
-                            "setup_details": setup_result,
-                            "connection_test": test_result
-                        }
-                else:
-                    return {
-                        "status": "error",
-                        "message": "Failed to automatically setup AI system",
-                        "setup_details": setup_result
-                    }
-            else:
-                self.logger.info("Ollama is already available")
-                
-                # Test connection
-                test_result = self.llm_client.test_connection()
-                if test_result["status"] == "success":
-                    return {
-                        "status": "success",
-                        "message": "AI system is already available and working",
-                        "connection_test": test_result
-                    }
-                else:
-                    return {
-                        "status": "warning", 
-                        "message": "AI system found but not responding properly",
-                        "connection_test": test_result
-                    }
-                    
-        except Exception as e:
-            self.logger.error(f"Auto-setup failed: {str(e)}")
-            return {
-                "status": "error",
-                "message": f"Auto-setup failed: {str(e)}"
-            }
-    
-    def get_ai_status(self):
-        """Get comprehensive AI system status"""
-        try:
-            status = {
-                "timestamp": datetime.now().isoformat(),
-                "ollama_installed": self.ollama_installer.check_ollama_installed(),
-                "connection_test": self.llm_client.test_connection(),
-                "available_models": self.ollama_installer.get_available_models(),
-                "system_requirements": self.ollama_installer.check_system_requirements()
-            }
-            
-            # Determine overall status
-            if status["ollama_installed"] and status["connection_test"]["status"] == "success":
-                status["overall_status"] = "healthy"
-            elif status["ollama_installed"]:
-                status["overall_status"] = "degraded"
-            else:
-                status["overall_status"] = "unavailable"
-            
-            return status
-            
-        except Exception as e:
-            self.logger.error(f"Failed to get AI status: {str(e)}")
-            return {
-                "timestamp": datetime.now().isoformat(),
-                "overall_status": "error",
-                "error": str(e)
-            }
 

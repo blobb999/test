@@ -10,7 +10,7 @@ self_learning_bp = Blueprint('self_learning', __name__)
 
 # Initialize enhanced AI manager
 enhanced_ai_manager = EnhancedAIManager()
-llm_client = LLMAPIClient(base_url="http://localhost:11434")
+llm_client = LLMAPIClient()
 
 @self_learning_bp.route('/status', methods=['GET'])
 @cross_origin()

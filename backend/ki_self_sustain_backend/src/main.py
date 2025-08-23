@@ -49,14 +49,4 @@ def serve(path):
 
 
 if __name__ == '__main__':
-    # Auto-setup AI on startup
-    try:
-        from src.modules.enhanced_ai_manager import EnhancedAIManager
-        ai_manager = EnhancedAIManager()
-        print("Checking AI system availability...")
-        setup_result = ai_manager.auto_setup_ai_if_needed()
-        print(f"AI setup result: {setup_result['status']} - {setup_result['message']}")
-    except Exception as e:
-        print(f"Warning: Auto-setup failed: {e}")
-    
     app.run(host='0.0.0.0', port=5000, debug=True)

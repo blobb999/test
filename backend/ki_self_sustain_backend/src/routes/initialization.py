@@ -73,7 +73,7 @@ def initialize_system():
                 "environment": "development"
             },
             "flowise": {
-                "endpoint": "http://localhost:11434",
+                "endpoint": "http://localhost:3000",
                 "api_key": None,
                 "auto_optimize": True,
                 "check_interval": 300

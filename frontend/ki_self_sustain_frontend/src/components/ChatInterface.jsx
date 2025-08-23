@@ -45,28 +45,6 @@ const ChatInterface = () => {
     setIsLoading(true);
 
     try {
-      // First check if AI is available and auto-setup if needed
-      const setupResponse = await fetch('http://localhost:5000/api/ai/check-and-setup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-      
-      const setupData = await setupResponse.json();
-      
-      // If setup was attempted, inform user
-      if (setupData.status === 'setup_attempted') {
-        const setupMessage = {
-          id: Date.now() + 0.5,
-          type: 'system',
-          content: `AI-System wird automatisch eingerichtet... Status: ${setupData.setup_result?.status || 'In Bearbeitung'}`,
-          timestamp: new Date(),
-          status: setupData.setup_result?.status === 'success' ? 'success' : 'warning'
-        };
-        setMessages(prev => [...prev, setupMessage]);
-      }
-
       // Determine the type of request based on content
       let endpoint = '/api/learning/llm-feedback';
       let requestData = {
@@ -129,14 +107,7 @@ Verbesserungen: ${data.improvement_plan ? Object.keys(data.improvement_plan).len
 ${data.message || data.analysis?.analysis || 'Verarbeitung abgeschlossen'}`;
         }
       } else {
-        // Check if it's the specific endpoint error
-        if (data.message && data.message.includes('No valid chat completion endpoints found')) {
-          botResponse.content = `KI-System nicht verfügbar. Automatische Einrichtung wird versucht...
-Fehler: ${data.message}
-Bitte warten Sie einen Moment und versuchen Sie es erneut.`;
-        } else {
-          botResponse.content = `Fehler: ${data.error || data.message || 'Unbekannter Fehler'}`;
-        }
+        botResponse.content = `Fehler: ${data.error || data.message || 'Unbekannter Fehler'}`;
       }
 
       setMessages(prev => [...prev, botResponse]);
